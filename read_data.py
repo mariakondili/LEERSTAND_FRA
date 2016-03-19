@@ -5,33 +5,33 @@ import os
 import sys
 import json
 from collections import defaultdict
-from bs4 import BeautifulSoup #apt-get install python-bs4 
-##Extract tags with bs4:
-#http://www.crummy.com/software/BeautifulSoup/bs4/doc/ 
+from bs4 import BeautifulSoup #apt-get install python-bs4  
 import requests 
-#os.chdir("Documents/LEERSTANDS_HACKATHON")
+import ast 
 
 dat=defaultdict(list)
 with open("FRA_all_places.json","r") as data: 
 	dat=json.load(data)
-	
-haus_num=len(dat["places"]) # 419
 
-inactive_places=[] #defaultdict(list)
+dat= ast.literal_eval(json.dumps(dat)) # Transform unicode in string
+
+haus_num=len(dat["places"]) # 419, dat['places'][i] to access an i-th house
+
+Inactive={} #defaultdict(list)
 #Filter the ones "inactive"/Abriss = True
 for i in range(len(dat['places'])) :
-	inactive = dat['places'][i]['place']['inactive']
-	if inactive== 'true' :
-		#addr=dat['places'][i]['place']['address']
-		ID = dat['places'][i]['place']['id']
-		inactive_places.append(ID) #=25
+	abriss = dat['places'][i]['place']['inactive']
+	if abriss == 'true' :
+		addr = dat['places'][i]['place']['address']
+		ID   = dat['places'][i]['place']['id']
+		Inactive.update({ID:addr}) #=25
 
 
-vacant_places=[] #defaultdict(list)
+vacant_places = [] #defaultdict(list)
 #Filter the ones "inactive"/Abriss = True
 for i in range(len(dat['places'])) :
-	inactive = dat['places'][i]['place']['inactive']
-	if inactive== 'false' :
+	inactiv = dat['places'][i]['place']['inactive']
+	if inactiv == 'false' :
 		#addr=dat['places'][i]['place']['address']
 		ID = dat['places'][i]['place']['id']
 		vacant_places.append(ID) #=394
@@ -50,13 +50,18 @@ for k in range(len(vacant_places)):
 		author=dat['places'][k]['place']['author']
 		#comments=dat['places'][k]['place']['comments'] #text not given in json
 		pic=dat['places'][k]['place']['picture']['thumb']
-		#info_vacant.update({ID:[name,link,lat,lng,address,author,pic]})
+
 		info_vacant.update({ID:{"name":name,"link":link, "lat":lat, "lng":lng,"address":address,"author":author,"picture":pic}})
 
 
-leer_tab={"Leerstand":"","Leerseit":"","Eigentuemer":"","Nutzungsart":"","Abriss":"","Beschreibung":"" }
-homepage= "http://leerstandsmelder.de"
+#Transform to GEOjson for mapping: (http://geojson.org/geojson-spec.html)
+#{ "type": "Feature",
+#  "geometry": {"type": "Point", "coordinates": [x, y]},
+#  "properties": {"prop0": "value0"} }
 
+
+leer_tab={}
+homepage= "http://leerstandsmelder.de"
 for k in range(len(vacant_places)):
 	link=dat['places'][k]['place']['link']
 	ID = dat['places'][k]['place']['id']
@@ -70,19 +75,15 @@ for k in range(len(vacant_places)):
 	Eigentuemer = divs.table.findAll('tr')[2]('td')[1]('strong')[0].string
 	Nutzungsart = divs.table.findAll('tr')[3]('td')[0]('strong')[0].string
 	Abriss = divs.table.findAll('tr')[3]('td')[1]('strong')[0].string
-	
 	paragr = soup.find("div", {"id":"description"})
-	descr = paragr.findAll("p")[0].string #Here is the text with info!
+	descr = paragr.findAll("p")[0].string #Here is the text with comments!
+	leer_tab.update({ID: {"Leerstand":Leerstand,"Leerseit":Leerseit,"Eigentuemer":Eigentuemer,"Nutzungsart":Nutzungsart,"Abriss":Abriss,"Beschreibung":descr}})
 
-	leer_tab.update({ID: {"Leerstand":Leerstand,"Leerseit":Leerseit,"Eigentuemer": Eigentuemer,"Nutzungsart":Nutzungsart, "Abriss":Abriss,"Beschreibung":descr }})
+#>> Count how many are "privat"
+how_many_private = len([k for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] =="privat"])
+#311 
+which_notPrivate = [j for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] != "privat"] #'keine Angabe'
 
-#**str are in unicode form.
-
-#_______________GEOjson______________________________#
-#Transform to GEOjson for mapping: (http://geojson.org/geojson-spec.html)
-#{ "type": "Feature",
-#  "geometry": {"type": "Point", "coordinates": [x, y]},
-#  "properties": {"prop0": "value0"} }
 
 
 
@@ -91,10 +92,12 @@ for k in range(len(vacant_places)):
 	
 
 
-	
 
 
 
+
+##Extract tags with bs4:
+#http://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
 
 
