@@ -1,0 +1,7 @@
+javascript 
+herokuapp.com/spots
+mapbox.com/maps
+L.tileLayer({id}/{z}{y}.png)
+leafletjs.com -> layer map diff model
+leaflet-provider: add src= <>
+/frankfurt/places/571-villa-schumannstrasse-60
