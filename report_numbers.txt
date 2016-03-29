@@ -1,0 +1,3 @@
+Active_buildings: 394
+Not_private buildings: 83
+Private_buildings: 311
