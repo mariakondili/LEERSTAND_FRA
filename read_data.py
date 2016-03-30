@@ -8,6 +8,8 @@ from collections import defaultdict
 from bs4 import BeautifulSoup #apt-get install python-bs4  
 import requests 
 import ast 
+import urllib2
+
 
 dat=defaultdict(list)
 with open("FRA_all_places.json","r") as data: 
@@ -70,10 +72,11 @@ for k in range(len(vacant_places)):
 	ID = dat['places'][k]['place']['id']
 	name=dat['places'][k]['place']['name']
 	address=dat['places'][k]['place']['address']
-	html_pg = requests.get(homepage+link)
-	content = html_pg.content
-	soup = BeautifulSoup(content,from_encoding="utf8")
- 	
+	#Fetch the html page in string:
+	request=urllib2.Request(homepage+link)
+ 	response = urllib2.urlopen(request)
+	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"))
+
 	divs  =  soup.find("div", {"id":"sheet"})
 	Leerstand   = divs.table.findAll('td')[1]('strong')[0].string
 	Leerseit    = divs.table.findAll('td')[3]('strong')[0].string
@@ -94,17 +97,17 @@ adress_privat = dict((j,leer_tab[j]["address"]) for j in which_private )
 with open("leer_tab.json", "w") as outtab :
 	json.dump(leer_tab, outtab)
 
-with open("which_notPrivate.json", "w") as nonpriv :
-	tab_notPriv = [leer_tab[j] for j in which_notPrivate ]
-	json.dump(tab_notPriv, nonpriv) 
+#with open("which_notPrivate.json", "w") as nonpriv :
+#	tab_notPriv = [leer_tab[j] for j in which_notPrivate ]
+#	json.dump(tab_notPriv, nonpriv) 
+
 
 import csv
-
 with open("report_numbers.txt", "w") as stats :
 	stats.write("Active_buildings: "+ str(len(leer_tab)) )
 	stats.write("\nNot_private buildings: "+str(len(which_notPrivate)))
 	stats.write("\nPrivate_buildings: "+str(how_many_private))
-	csv.writer()     
+	#csv.writer()     
 
 
 	
