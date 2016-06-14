@@ -1,5 +1,6 @@
 # LEERSTAND_FRA
-HackFrankfurt-Open Data on vacant properties ("Leerstand" auf Deutsch)
+HackFrankfurt-Open Data on vacant properties ("Leerstand" auf Deutsch).
+
 Provided by the webpage https://www.leerstandsmelder.de/frankfurt and extracted for analysis & further manipulation.
 
 Once you pull the repo ,the script extract_leerstand.py can be used to read 
