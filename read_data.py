@@ -1,5 +1,6 @@
 #!/usr/bin/python
-"""Extract data from http://leerstandsmelder.de/frankfurt vacant houses & categorise them """
+#encode --utf-8--
+"""Extract data from http://leerstandsmelder.de/frankfurt vacant houses & categorise them in active-inactive, public-private, etc.."""
 
 import os
 import sys
@@ -14,12 +15,13 @@ import urllib2
 dat=defaultdict(list)
 with open("FRA_all_places.json","r") as data: 
 	dat=json.load(data)
+#json file downloaded from html page in "inspector" Tab found by 'F12'.
 
 dat= ast.literal_eval(json.dumps(dat)) # Transform unicode in string
 
 haus_num=len(dat["places"]) # 419, dat['places'][i] to access an i-th house
 
-Inactive={} #defaultdict(list)
+Inactive={} 
 #Filter the ones "inactive"/Abriss = True
 for i in range(len(dat['places'])) :
 	abriss = dat['places'][i]['place']['inactive']
@@ -40,9 +42,9 @@ for i in range(len(dat['places'])) :
 
 
 info_vacant={"ID":"","name":"","link":"","lat":"","lng":"","address":"","author":"","picture":""}
-#info_per_id={}
+
 for k in range(len(vacant_places)):
-	if dat['places'][k]['place']['inactive'] =='false' :  ##= not demolished, inactive=Demolished
+	if dat['places'][k]['place']['inactive'] =='false' :  #false = not demolished, inactive,True=Demolished
 		ID = dat['places'][k]['place']['id']
 		name=dat['places'][k]['place']['name']
 		link=dat['places'][k]['place']['link']
@@ -55,23 +57,14 @@ for k in range(len(vacant_places)):
 
 		info_vacant.update({ID:{"name":name,"link":link, "lat":lat, "lng":lng,"address":address,"author":author,"picture":pic}})
 
-
-#Transform to GEOjson for mapping: (http://geojson.org/geojson-spec.html)
-#{ "type": "Feature",
-#  "geometry": {"type": "Point", "coordinates": [x, y]},
-#  "properties": {"prop0": "value0"} }
-
-for i in range(len(vacant_places)): 
-	lat=dat['places'][i]['place']['lat']
-	lng=dat['places'][k]['place']['lng']
-
-leer_tab={}
+leer_tab={} #--> Saved in a file.json
 homepage= "http://leerstandsmelder.de"
 for k in range(len(vacant_places)):
-	link=dat['places'][k]['place']['link']
 	ID = dat['places'][k]['place']['id']
+	link=dat['places'][k]['place']['link']
 	name=dat['places'][k]['place']['name']
 	address=dat['places'][k]['place']['address']
+
 	#Fetch the html page in string:
 	request=urllib2.Request(homepage+link)
  	response = urllib2.urlopen(request)
@@ -88,7 +81,7 @@ for k in range(len(vacant_places)):
 	leer_tab.update({ID: {"link":link,"name":name,"address": address,  "Leerstand":Leerstand, "Leerseit":Leerseit,"Eigentuemer":Eigentuemer, "Nutzungsart":Nutzungsart, "Abriss":Abriss, "Beschreibung":descr}})
 
 #>> Count how many are "privat"
-how_many_private = len([k for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] =="privat"]) #311 
+how_many_private = len([k for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] =="privat"])  
 which_private = [j for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] == "privat"]
 which_notPrivate = [j for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] != "privat"] #'keine Angabe'
 
@@ -101,26 +94,21 @@ with open("leer_tab.json", "w") as outtab :
 #	tab_notPriv = [leer_tab[j] for j in which_notPrivate ]
 #	json.dump(tab_notPriv, nonpriv) 
 
-
 import csv
 with open("report_numbers.txt", "w") as stats :
 	stats.write("Active_buildings: "+ str(len(leer_tab)) )
 	stats.write("\nNot_private buildings: "+str(len(which_notPrivate)))
-	stats.write("\nPrivate_buildings: "+str(how_many_private))
-	#csv.writer()     
+	stats.write("\nPrivate_buildings: "+str(how_many_private))  
 
 
-	
+IDs=[]
+for i in LeerTab:
+	IDs.append(i)
 
-
-
-
-	
-
-
-
-
-
+with open('IDs_Vacant_LeerTab.txt', 'w') as fwr :
+	f.write("Serial\t"+"ID\t"+"\n")
+	for i in range(1,len(IDs)):
+		f.write(str(i)+"\t"+ IDs[i]+"\n")
 
 ##Extract tags with bs4:
 #http://www.crummy.com/software/BeautifulSoup/bs4/doc/
