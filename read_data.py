@@ -13,13 +13,14 @@ import urllib2
 
 
 dat=defaultdict(list)
-with open("FRA_all_places.json","r") as data: 
+with open("Frankfurt_Leerstand_places.json","r") as data: 
 	dat=json.load(data)
 #json file downloaded from html page in "inspector" Tab found by 'F12'.
 
 dat= ast.literal_eval(json.dumps(dat)) # Transform unicode in string
 
-haus_num=len(dat["places"]) # 419, dat['places'][i] to access an i-th house
+haus_num=len(dat["places"]) # 419 places in total
+						    # dat['places'][i] to access an i-th house
 
 Inactive={} 
 #Filter the ones "inactive"/Abriss = True
@@ -58,7 +59,7 @@ for k in range(len(vacant_places)):
 		info_vacant.update({ID:{"name":name,"link":link, "lat":lat, "lng":lng,"address":address,"author":author,"picture":pic}})
 
 leer_tab={} #--> Saved in a file.json
-homepage= "http://leerstandsmelder.de"
+homepage= "http://leerstandsmelder.de"  #--> Changed/Renewed,Fetching with this code doesn't give the "soup" needed below anymore
 for k in range(len(vacant_places)):
 	ID = dat['places'][k]['place']['id']
 	link=dat['places'][k]['place']['link']
@@ -67,9 +68,13 @@ for k in range(len(vacant_places)):
 
 	#Fetch the html page in string:
 	request=urllib2.Request(homepage+link)
- 	response = urllib2.urlopen(request)
+ 	response = urllib2.urlopen(request)  #in other examples they do: content = urllib2.urlopen(request).read()
 	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"))
-
+	soup= BeautifulSoup(response.read(), from_encoding = "utf-8")
+	## Here there is a problem that gives in the end malformed text from special German characters. 
+	## the ".decode" parameter proposed at : 
+	## http://stackoverflow.com/questions/20205455/how-to-correctly-parse-utf-8-encoded-html-to-unicode-strings-with-beautifulsoup  ,
+	## but not correcting the special chars
 	divs  =  soup.find("div", {"id":"sheet"})
 	Leerstand   = divs.table.findAll('td')[1]('strong')[0].string
 	Leerseit    = divs.table.findAll('td')[3]('strong')[0].string
@@ -78,7 +83,9 @@ for k in range(len(vacant_places)):
 	Abriss = divs.table.findAll('tr')[3]('td')[1]('strong')[0].string
 	paragr = soup.find("div", {"id":"description"})
 	descr = paragr.findAll("p")[0].string #Here is the text with comments!
-	leer_tab.update({ID: {"link":link,"name":name,"address": address,  "Leerstand":Leerstand, "Leerseit":Leerseit,"Eigentuemer":Eigentuemer, "Nutzungsart":Nutzungsart, "Abriss":Abriss, "Beschreibung":descr}})
+	leer_tab.update({ID: {"link":link, "name":name,"address": address, "Leerstand":Leerstand,
+					 "Leerseit":Leerseit,"Eigentuemer":Eigentuemer, 
+					 "Nutzungsart":Nutzungsart, "Abriss":Abriss, "Beschreibung":descr}})
 
 #>> Count how many are "privat"
 how_many_private = len([k for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] =="privat"])  

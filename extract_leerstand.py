@@ -1,3 +1,7 @@
+#!/usr/bin/python
+#encode --utf-8--
+
+import json
 
 # Load this structured dataset now and work on the info provided for each house:
 with open("leer_tab.json") as data :
