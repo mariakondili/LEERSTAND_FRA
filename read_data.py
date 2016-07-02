@@ -70,7 +70,7 @@ for k in range(len(vacant_places)):
 	request=urllib2.Request(homepage+link)
  	response = urllib2.urlopen(request)  #in other examples they do: content = urllib2.urlopen(request).read()
 	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"))
-	soup= BeautifulSoup(response.read(), from_encoding = "utf-8")
+	#or : soup= BeautifulSoup(response.read(), from_encoding = "utf-8")
 	## Here there is a problem that gives in the end malformed text from special German characters. 
 	## the ".decode" parameter proposed at : 
 	## http://stackoverflow.com/questions/20205455/how-to-correctly-parse-utf-8-encoded-html-to-unicode-strings-with-beautifulsoup  ,
