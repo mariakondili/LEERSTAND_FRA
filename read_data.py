@@ -109,7 +109,7 @@ with open("report_numbers.txt", "w") as stats :
 
 
 IDs=[]
-for i in LeerTab:
+for i in leer_tab:
 	IDs.append(i)
 
 with open('IDs_Vacant_LeerTab.txt', 'w') as fwr :
