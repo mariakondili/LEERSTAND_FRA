@@ -1,5 +1,10 @@
+#! usr/bin/python2
+import requests 
+import ast 
+import urllib2
+
 dat=defaultdict(list)
-with open("Frankfurt_Leerstand_places.json","r") as data: 
+with open("input/Frankfurt_Leerstand_places.json","r") as data: 
 	dat=json.load(data)
 dat= ast.literal_eval(json.dumps(dat)) # Transform unicode in string
 
@@ -24,9 +29,9 @@ for k in range(len(vacant_places)):
 	address=dat['places'][k]['place']['address']
 	request=urllib2.Request(homepage+link)
  	response = urllib2.urlopen(request)  #in other examples they do: content = urllib2.urlopen(request).read()
-	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"))
+	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"), "lxml")
 	#soup= BeautifulSoup(response.read(), from_encoding = "utf-8")
-	divs  =  soup.find("div", {"id":"sheet"})
+	divs  =  soup.find("div", {"id":"sheet"}) #>> empty !! 
 	Leerstand   = divs.table.findAll('td')[1]('strong')[0].string
 	Leerseit    = divs.table.findAll('td')[3]('strong')[0].string
 	Eigentuemer = divs.table.findAll('tr')[2]('td')[1]('strong')[0].string
@@ -39,15 +44,30 @@ for k in range(len(vacant_places)):
 					 "Nutzungsart":Nutzungsart, "Abriss":Abriss, "Beschreibung":descr}})
 
 
-with open("leer_tab.json", "w") as outtab :
-	json.dump(leer_tab, outtab)
+#with open("leer_tab.json", "w") as outtab :
+#	json.dump(leer_tab, outtab)
 
 IDs=[]
 for i in leer_tab:
 	IDs.append(i)
 
-with open('IDs_Vacant_LeerTab.txt', 'w') as fwr :
-	f.write("Serial\t"+"ID\t"+"\n")
-	for i in range(1,len(IDs)):
-		f.write(str(i)+"\t"+ IDs[i]+"\n")
+#with open('IDs_Vacant_LeerTab.txt', 'w') as fwr :
+#	f.write("Serial\t"+"ID\t"+"\n")
+#	for i in range(1,len(IDs)):
+#		f.write(str(i)+"\t"+ IDs[i]+"\n")
+
+
+## Count houses per category : private- not private
+how_many_private = len([k for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] =="privat"])  
+which_private = [j for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] == "privat"]
+which_notPrivate = [j for k,j in enumerate(leer_tab) if leer_tab[j]["Eigentuemer"] != "privat"] #'keine Angabe'
+
+
+## Save statistics to a table
+import csv
+#with open("report_numbers.txt", "w") as stats :
+#	stats.header("active","not_private", "private")
+#	stats.write("Active_buildings: "+ str(len(leer_tab)) )
+#	stats.write("\nNot_private buildings: "+str(len(which_notPrivate)))
+#	stats.write("\nPrivate_buildings: "+str(how_many_private)) 
 
