@@ -53,14 +53,14 @@ for k in range(len(Vacant)):
 	#Fetch the html page in string:
 	request=urllib2.Request(homepage+link)
  	response = urllib2.urlopen(request)  #in other examples: content = urllib2.urlopen(request).read()
-	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"))
+	soup = BeautifulSoup(response.read().decode("utf-8", "ignore"), "lxml")
 	#or : soup= BeautifulSoup(response.read(), from_encoding = "utf-8")
 	## Problem: malformed text from special German characters. 
 	## the ".decode" parameter proposed at :
 	## http://stackoverflow.com/questions/20205455/how-to-correctly-parse-utf-8-encoded-html-to-unicode-strings-with-beautifulsoup ,
 	## is not correcting the special chars
 
-	divs  =  soup.find("div", {"id":"sheet"})
+	divs  =  soup.find("div", {"id":"sheet"}) ##>> empty,"id" doesn't exist in new html!
 	Leerstand   = divs.table.findAll('td')[1]('strong')[0].string
 	Leerseit    = divs.table.findAll('td')[3]('strong')[0].string
 	Eigentuemer = divs.table.findAll('tr')[2]('td')[1]('strong')[0].string
